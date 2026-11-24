@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NGO Dashboard – FeedForward</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--green:#2d6a4f;--lime:#52b788;--yellow:#f4a261;--orange:#e76f51;--dark:#1a1a2e;--sidebar:#13132a;--card:rgba(255,255,255,0.04)}
+    body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#f0ede4;display:flex;min-height:100vh}
+    .sidebar{width:240px;background:var(--sidebar);border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;padding:1.5rem 0;position:fixed;top:0;bottom:0;left:0;z-index:50}
+    .sb-logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--yellow);padding:0 1.5rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.06)}
+    .sb-logo span{color:var(--lime)}
+    .sb-section{padding:1.2rem 1rem 0;font-size:0.68rem;font-weight:700;color:#444;letter-spacing:1.5px;text-transform:uppercase}
+    .sb-nav{list-style:none;padding:0.4rem 0.8rem 0}
+    .sb-nav li a{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 0.8rem;border-radius:10px;text-decoration:none;color:#888;font-size:0.88rem;font-weight:500;transition:all 0.2s}
+    .sb-nav li a:hover{background:rgba(255,255,255,0.05);color:#ddd}
+    .sb-nav li a.active{background:rgba(244,162,97,0.12);color:var(--yellow)}
+    .sb-nav li a .ico{font-size:1.1rem;width:22px;text-align:center}
+    .sb-bottom{margin-top:auto;padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,0.06)}
+    .sb-user{display:flex;align-items:center;gap:0.8rem}
+    .sb-avatar{width:36px;height:36px;background:linear-gradient(135deg,var(--yellow),var(--orange));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:white;flex-shrink:0}
+    .sb-user-info .name{font-size:0.85rem;font-weight:600}
+    .sb-user-info .role{font-size:0.72rem;color:#666}
+    .main{margin-left:240px;flex:1;padding:2rem 2.5rem;max-width:calc(100vw - 240px)}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
+    .topbar h1{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:900}
+    .topbar p{color:#888;font-size:0.88rem;margin-top:0.2rem}
+    .btn-refresh{background:rgba(244,162,97,0.12);border:1px solid rgba(244,162,97,0.3);color:var(--yellow);padding:0.6rem 1.2rem;border-radius:10px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s}
+    .btn-refresh:hover{background:rgba(244,162,97,0.2)}
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+    .stat-card{background:var(--card);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:1.4rem 1.5rem;transition:transform 0.2s}
+    .stat-card:hover{transform:translateY(-3px)}
+    .sc-icon{font-size:1.6rem;margin-bottom:0.6rem}
+    .sc-val{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900;color:var(--yellow)}
+    .sc-label{font-size:0.78rem;color:#777;margin-top:0.2rem}
+    .sec-card{background:var(--card);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:1.5rem;margin-bottom:1.5rem}
+    .sec-card h3{font-size:1rem;font-weight:700;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between;gap:0.5rem}
+    .filter-bar{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.2rem}
+    .filter-btn{background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.1);color:#aaa;padding:0.4rem 0.9rem;border-radius:50px;font-size:0.78rem;font-weight:500;cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif}
+    .filter-btn:hover,.filter-btn.active{background:rgba(244,162,97,0.12);border-color:var(--yellow);color:var(--yellow)}
+    .food-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:1rem}
+    .food-card{background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);border-radius:16px;overflow:hidden;transition:transform 0.25s,border-color 0.25s}
+    .food-card:hover{transform:translateY(-4px);border-color:rgba(244,162,97,0.3)}
+    .fc-img{height:100px;background:linear-gradient(135deg,rgba(82,183,136,0.15),rgba(244,162,97,0.1));display:flex;align-items:center;justify-content:center;font-size:3rem;position:relative}
+    .fc-urgency{position:absolute;top:0.6rem;right:0.6rem;padding:0.2rem 0.6rem;border-radius:50px;font-size:0.68rem;font-weight:700}
+    .urg-high{background:rgba(231,111,81,0.3);color:var(--orange);border:1px solid rgba(231,111,81,0.4)}
+    .urg-medium{background:rgba(244,162,97,0.25);color:var(--yellow);border:1px solid rgba(244,162,97,0.4)}
+    .urg-low{background:rgba(82,183,136,0.2);color:var(--lime);border:1px solid rgba(82,183,136,0.4)}
+    .fc-body{padding:1rem}
+    .fc-name{font-weight:700;font-size:0.95rem;margin-bottom:0.3rem}
+    .fc-meta{font-size:0.75rem;color:#777;line-height:1.7}
+    .fc-timer{font-size:0.75rem;color:var(--orange);font-weight:600;margin:0.4rem 0}
+    .fc-footer{display:flex;gap:0.5rem;margin-top:0.8rem}
+    .btn-claim{flex:1;background:linear-gradient(135deg,var(--yellow),var(--orange));color:white;border:none;padding:0.6rem;border-radius:8px;font-size:0.8rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:transform 0.2s,box-shadow 0.2s}
+    .btn-claim:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(244,162,97,0.4)}
+    .btn-claim:disabled{background:rgba(255,255,255,0.1);color:#666;cursor:default;transform:none;box-shadow:none}
+    .empty-state{text-align:center;padding:3rem;color:#555;grid-column:1/-1}
+    .empty-state .es-icon{font-size:3rem;margin-bottom:0.5rem}
+    .loading-state{text-align:center;padding:2rem;color:#666;grid-column:1/-1}
+    .claim-item{display:flex;align-items:center;gap:1rem;padding:0.9rem;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;margin-bottom:0.6rem;transition:border-color 0.2s}
+    .claim-item:hover{border-color:rgba(244,162,97,0.2)}
+    .ci-emoji{font-size:1.8rem;flex-shrink:0}
+    .ci-info{flex:1;min-width:0}
+    .ci-name{font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ci-meta{color:#777;font-size:0.75rem;margin-top:0.15rem}
+    .badge{padding:0.25rem 0.7rem;border-radius:50px;font-size:0.7rem;font-weight:600;flex-shrink:0}
+    .badge-claimed{background:rgba(244,162,97,0.18);color:var(--yellow)}
+    .badge-completed{background:rgba(82,183,136,0.18);color:var(--lime)}
+    .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);backdrop-filter:blur(6px);z-index:200;align-items:center;justify-content:center;padding:1rem}
+    .modal-overlay.show{display:flex;animation:fadeUp 0.3s ease}
+    .modal{background:#1e1e35;border:1px solid rgba(255,255,255,0.1);border-radius:24px;padding:2rem;max-width:400px;width:100%;position:relative;text-align:center}
+    .modal-close{position:absolute;top:1rem;right:1rem;background:none;border:none;color:#888;font-size:1.3rem;cursor:pointer}
+    .modal h3{font-family:'Playfair Display',serif;font-size:1.4rem;margin-bottom:0.6rem}
+    .modal p{color:#888;font-size:0.88rem;margin-bottom:1.5rem;line-height:1.6}
+    .modal-emoji{font-size:3rem;margin-bottom:1rem}
+    .btn-confirm{width:100%;background:linear-gradient(135deg,var(--yellow),var(--orange));color:white;border:none;padding:0.8rem;border-radius:10px;font-size:0.95rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-bottom:0.5rem;transition:transform 0.2s}
+    .btn-confirm:hover{transform:translateY(-2px)}
+    .btn-confirm:disabled{opacity:0.7;cursor:not-allowed;transform:none}
+    .btn-cancel{width:100%;background:rgba(255,255,255,0.06);color:#aaa;border:none;padding:0.7rem;border-radius:10px;font-size:0.9rem;cursor:pointer;font-family:'DM Sans',sans-serif}
+    .stars-input{display:flex;justify-content:center;gap:0.5rem;font-size:2.2rem;margin:1rem 0;cursor:pointer;user-select:none}
+    .star-btn{transition:transform 0.2s;color:#555}
+    .star-btn.selected{color:var(--yellow);transform:scale(1.15)}
+    .field label{display:block;font-size:0.78rem;color:#aaa;margin-bottom:0.4rem;text-align:left}
+    .field textarea{width:100%;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.1);border-radius:9px;padding:0.65rem 0.9rem;color:#f0ede4;font-size:0.85rem;font-family:'DM Sans',sans-serif;outline:none;resize:none}
+    .field textarea:focus{border-color:var(--yellow)}
+    .toast{position:fixed;bottom:2rem;right:2rem;padding:0.9rem 1.5rem;border-radius:12px;font-size:0.9rem;font-weight:600;z-index:999;opacity:0;transform:translateY(20px);transition:all 0.3s;pointer-events:none}
+    .toast.success{background:var(--green)}
+    .toast.error{background:var(--orange)}
+    .toast.show{opacity:1;transform:translateY(0)}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+    @media(max-width:900px){.stats-row{grid-template-columns:1fr 1fr}.sidebar{display:none}.main{margin-left:0;max-width:100vw;padding:1.5rem}}
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sb-logo">Feed<span>Forward</span></div>
+  <div class="sb-section">Main</div>
+  <ul class="sb-nav">
+    <li><a href="#" class="active"><span class="ico">🏠</span> Dashboard</a></li>
+    <li><a href="#"><span class="ico">🍱</span> Available Food</a></li>
+    <li><a href="#"><span class="ico">✅</span> My Claims</a></li>
+  </ul>
+  <div class="sb-section">Account</div>
+  <ul class="sb-nav">
+    <li><a href="#"><span class="ico">📊</span> Impact Report</a></li>
+    <li><a href="#" onclick="logout(event)"><span class="ico">🚪</span> Logout</a></li>
+  </ul>
+  <div class="sb-bottom">
+    <div class="sb-user">
+      <div class="sb-avatar" id="avatarLetter">N</div>
+      <div class="sb-user-info">
+        <div class="name" id="sidebarName">Loading…</div>
+        <div class="role">🤝 NGO</div>
+      </div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1 id="greeting">NGO Dashboard 🤝</h1>
+      <p>Browse and claim food donations near you.</p>
+    </div>
+    <button class="btn-refresh" onclick="loadAvailableFood()">🔄 Refresh Food</button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="sc-icon">🍱</div><div class="sc-val" id="ns1">—</div><div class="sc-label">Available Now</div></div>
+    <div class="stat-card"><div class="sc-icon">✅</div><div class="sc-val" id="ns2">—</div><div class="sc-label">My Claims</div></div>
+    <div class="stat-card"><div class="sc-icon">🔥</div><div class="sc-val" id="ns3">—</div><div class="sc-label">Urgent Items</div></div>
+    <div class="stat-card"><div class="sc-icon">📍</div><div class="sc-val" id="ns4">—</div><div class="sc-label">Completed</div></div>
+  </div>
+
+  <!-- AVAILABLE FOOD - loaded from real DB -->
+  <div class="sec-card">
+    <h3>🍱 Available Food Near You</h3>
+    <div class="filter-bar">
+      <button class="filter-btn active" onclick="filterFood('all',this)">All</button>
+      <button class="filter-btn" onclick="filterFood('urgent',this)">🔥 Urgent</button>
+      <button class="filter-btn" onclick="filterFood('cooked',this)">🍛 Cooked</button>
+      <button class="filter-btn" onclick="filterFood('bakery',this)">🍞 Bakery</button>
+      <button class="filter-btn" onclick="filterFood('veg',this)">🥗 Vegetables</button>
+    </div>
+    <div class="food-grid" id="foodGrid">
+      <div class="loading-state">Loading available food…</div>
+    </div>
+  </div>
+
+  <!-- MY CLAIMS - loaded from real DB -->
+  <div class="sec-card">
+    <h3>📋 My Claims</h3>
+    <div id="claimsList">
+      <div class="loading-state">Loading your claims…</div>
+    </div>
+  </div>
+</main>
+
+<!-- CLAIM CONFIRM MODAL -->
+<div class="modal-overlay" id="claimModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('claimModal')">✕</button>
+    <div class="modal-emoji">🤝</div>
+    <h3>Claim This Food?</h3>
+    <p id="claimModalText">Make sure you can collect within the pickup window.</p>
+    <button class="btn-confirm" id="claimConfirmBtn" onclick="confirmClaim()">✅ Yes, Claim It!</button>
+    <button class="btn-cancel" onclick="closeModal('claimModal')">Cancel</button>
+  </div>
+</div>
+
+<!-- RATE DONOR MODAL -->
+<div class="modal-overlay" id="rateModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('rateModal')">✕</button>
+    <div class="modal-emoji">⭐</div>
+    <h3>Rate This Donor</h3>
+    <p>How was your experience with this donation?</p>
+    <div class="stars-input" id="starsInput">
+      <span class="star-btn" onclick="setStar(1)">★</span>
+      <span class="star-btn" onclick="setStar(2)">★</span>
+      <span class="star-btn" onclick="setStar(3)">★</span>
+      <span class="star-btn" onclick="setStar(4)">★</span>
+      <span class="star-btn" onclick="setStar(5)">★</span>
+    </div>
+    <div class="field" style="text-align:left;margin-top:0.5rem">
+      <label>Comment (optional)</label>
+      <textarea id="rateComment" rows="2" placeholder="Food was fresh and well packaged…"></textarea>
+    </div>
+    <button class="btn-confirm" onclick="submitRating()">Submit Rating</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  // ── User info
+  const ffUser = JSON.parse(localStorage.getItem('ff_user') || '{}');
+  const userName = ffUser.name || 'NGO';
+  document.getElementById('sidebarName').textContent = userName;
+  document.getElementById('avatarLetter').textContent = userName.charAt(0).toUpperCase();
+  document.getElementById('greeting').textContent = `Welcome, ${userName.split(' ')[0]} 🤝`;
+
+  let allFood = [];
+  let currentFilter = 'all';
+  let claimTarget = null;
+  let rateTarget  = null;
+  let selectedStar = 0;
+
+  // ─────────────────────────────────────────
+  // LOAD AVAILABLE FOOD FROM REAL DB
+  // ─────────────────────────────────────────
+  async function loadAvailableFood() {
+    const grid = document.getElementById('foodGrid');
+    grid.innerHTML = '<div class="loading-state">Loading available food…</div>';
+    try {
+      const res  = await fetch('/api/donations', { credentials: 'include' });
+      const data = await res.json();
+
+      if (!data.success) {
+        grid.innerHTML = '<div class="empty-state"><div class="es-icon">⚠️</div><p>Could not load food.</p></div>';
+        return;
+      }
+
+      allFood = data.donations;
+
+      // Update stats
+      document.getElementById('ns1').textContent = allFood.length;
+      document.getElementById('ns3').textContent = allFood.filter(f => f.urgency === 'high').length;
+
+      renderGrid(currentFilter);
+    } catch(e) {
+      grid.innerHTML = '<div class="empty-state"><div class="es-icon">⚠️</div><p>Server not reachable.</p></div>';
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // RENDER FOOD GRID
+  // ─────────────────────────────────────────
+  function renderGrid(filter) {
+    const grid = document.getElementById('foodGrid');
+    let filtered = allFood;
+    if (filter === 'urgent')  filtered = allFood.filter(f => f.urgency === 'high');
+    else if (filter === 'cooked') filtered = allFood.filter(f => f.category === 'Cooked Meal');
+    else if (filter === 'bakery') filtered = allFood.filter(f => f.category === 'Bakery');
+    else if (filter === 'veg')    filtered = allFood.filter(f => f.category === 'Raw Vegetables');
+
+    if (filtered.length === 0) {
+      grid.innerHTML = '<div class="empty-state"><div class="es-icon">🍱</div><p>No food available in this category right now.<br>Check back soon!</p></div>';
+      return;
+    }
+
+    grid.innerHTML = filtered.map(f => {
+      const emoji  = getEmoji(f.category);
+      const urgCls = f.urgency === 'high' ? 'urg-high' : f.urgency === 'medium' ? 'urg-medium' : 'urg-low';
+      const urgLbl = f.urgency === 'high' ? '🔥 Urgent' : f.urgency === 'medium' ? '⚡ Soon' : '✅ Fresh';
+      const donor  = f.organisation || `${f.fname} ${f.lname}`;
+      const ago    = timeAgo(f.created_at);
+      return `<div class="food-card">
+        <div class="fc-img">${emoji}<span class="fc-urgency ${urgCls}">${urgLbl}</span></div>
+        <div class="fc-body">
+          <div class="fc-name">${f.food_type} – ${f.quantity}</div>
+          <div class="fc-meta">
+            📍 ${f.location}<br>
+            🏪 ${donor}<br>
+            🕐 Posted ${ago}
+          </div>
+          <div class="fc-footer">
+            <button class="btn-claim" onclick="openClaim(${f.id}, '${f.food_type}', '${f.quantity}', '${donor.replace(/'/g,"\\'")}')">🤝 Claim</button>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+  }
+
+  function filterFood(type, btn) {
+    currentFilter = type;
+    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderGrid(type);
+  }
+
+  // ─────────────────────────────────────────
+  // LOAD MY CLAIMS FROM REAL DB
+  // ─────────────────────────────────────────
+  async function loadMyClaims() {
+    const list = document.getElementById('claimsList');
+    try {
+      const res  = await fetch('/api/my-claims', { credentials: 'include' });
+      const data = await res.json();
+
+      if (!data.success || data.claims.length === 0) {
+        list.innerHTML = '<div class="empty-state" style="padding:1.5rem"><div class="es-icon">📋</div><p>No claims yet. Claim food above!</p></div>';
+        document.getElementById('ns2').textContent = '0';
+        document.getElementById('ns4').textContent = '0';
+        return;
+      }
+
+      document.getElementById('ns2').textContent = data.claims.length;
+      document.getElementById('ns4').textContent = data.claims.filter(c => c.status === 'completed').length;
+
+      list.innerHTML = data.claims.map(c => {
+        const donor = c.organisation || `${c.fname} ${c.lname}`;
+        const isCompleted = c.status === 'completed';
+        const badge = isCompleted
+          ? '<span class="badge badge-completed">Completed ✅</span>'
+          : '<span class="badge badge-claimed">Claimed</span>';
+        const rateBtn = !isCompleted
+          ? `<button onclick="openRate(${c.id})" style="background:rgba(244,162,97,0.1);border:1px solid rgba(244,162,97,0.3);color:var(--yellow);padding:0.35rem 0.7rem;border-radius:8px;font-size:0.72rem;cursor:pointer;font-family:'DM Sans',sans-serif;margin-right:0.4rem;flex-shrink:0">⭐ Rate</button>`
+          : '';
+        return `<div class="claim-item">
+          <div class="ci-emoji">${getEmoji(c.category)}</div>
+          <div class="ci-info">
+            <div class="ci-name">${c.food_type} – ${c.quantity}</div>
+            <div class="ci-meta">📍 ${c.location} · Donor: ${donor} · Claimed ${timeAgo(c.claimed_at)}</div>
+          </div>
+          ${rateBtn}
+          ${badge}
+        </div>`;
+      }).join('');
+    } catch(e) {
+      list.innerHTML = '<div class="empty-state" style="padding:1.5rem"><div class="es-icon">⚠️</div><p>Could not load claims.</p></div>';
+    }
+  }
+
+  // ─────────────────────────────────────────
+  // CLAIM
+  // ─────────────────────────────────────────
+  function openClaim(id, foodType, qty, donor) {
+    claimTarget = id;
+    document.getElementById('claimModalText').innerHTML =
+      `You are claiming <strong>${foodType} – ${qty}</strong> from <strong>${donor}</strong>.<br>Make sure you can collect within the pickup window.`;
+    document.getElementById('claimModal').classList.add('show');
+  }
+
+  async function confirmClaim() {
+    const btn = document.getElementById('claimConfirmBtn');
+    btn.disabled = true;
+    btn.textContent = 'Claiming…';
+
+    try {
+      const res  = await fetch('/api/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ donation_id: claimTarget }),
+        credentials: 'include'
+      });
+      const data = await res.json();
+
+      closeModal('claimModal');
+      if (data.success) {
+        showToast('✅ Food claimed! Go collect it.', 'success');
+        await loadAvailableFood();   // refresh food list
+        await loadMyClaims();        // refresh claims list
+      } else {
+        showToast('❌ ' + (data.message || 'Could not claim'), 'error');
+      }
+    } catch(e) {
+      showToast('❌ Server error', 'error');
+      closeModal('claimModal');
+    }
+
+    btn.disabled = false;
+    btn.textContent = '✅ Yes, Claim It!';
+  }
+
+  // ─────────────────────────────────────────
+  // RATING
+  // ─────────────────────────────────────────
+  function openRate(donationId) {
+    rateTarget = donationId;
+    selectedStar = 0;
+    document.querySelectorAll('.star-btn').forEach(s => s.classList.remove('selected'));
+    document.getElementById('rateComment').value = '';
+    document.getElementById('rateModal').classList.add('show');
+  }
+
+  function setStar(n) {
+    selectedStar = n;
+    document.querySelectorAll('.star-btn').forEach((s, i) => {
+      s.classList.toggle('selected', i < n);
+    });
+  }
+
+  async function submitRating() {
+    if (!selectedStar) { showToast('⭐ Please select a rating first', 'error'); return; }
+    try {
+      const res  = await fetch('/api/rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          donation_id: rateTarget,
+          rating: selectedStar,
+          comment: document.getElementById('rateComment').value
+        }),
+        credentials: 'include'
+      });
+      const data = await res.json();
+      closeModal('rateModal');
+      showToast(data.success ? '⭐ Rating submitted! Thank you.' : '❌ Could not submit rating', data.success ? 'success' : 'error');
+    } catch(e) {
+      closeModal('rateModal');
+      showToast('❌ Server error', 'error');
+    }
+  }
+
+  // ── Helpers
+  function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+  function getEmoji(cat) {
+    const m = {'Cooked Meal':'🍛','Packed Food':'📦','Raw Vegetables':'🥬','Bakery':'🍞','Fruits':'🍎'};
+    return m[cat] || '🍱';
+  }
+
+  function timeAgo(ts) {
+    if (!ts) return 'Just now';
+    const diff = (Date.now() - new Date(ts).getTime()) / 1000;
+    if (diff < 60)    return 'Just now';
+    if (diff < 3600)  return Math.floor(diff/60) + ' min ago';
+    if (diff < 86400) return Math.floor(diff/3600) + ' hr ago';
+    return Math.floor(diff/86400) + ' days ago';
+  }
+
+  function showToast(msg, type='success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3500);
+  }
+
+  async function logout(e) {
+    e.preventDefault();
+    await fetch('/api/logout', { method:'POST', credentials:'include' });
+    localStorage.removeItem('ff_user');
+    window.location.href = 'login.html';
+  }
+
+  // ── Load everything on page open
+  loadAvailableFood();
+  loadMyClaims();
+</script>
+</body>
+</html>

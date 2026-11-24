@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel – FeedForward</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--green:#2d6a4f;--lime:#52b788;--yellow:#f4a261;--orange:#e76f51;--dark:#1a1a2e;--sidebar:#13132a;--card:rgba(255,255,255,0.04)}
+    body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#f0ede4;display:flex;min-height:100vh}
+    .sidebar{width:240px;background:var(--sidebar);border-right:1px solid rgba(255,255,255,0.06);display:flex;flex-direction:column;padding:1.5rem 0;position:fixed;top:0;bottom:0;left:0;z-index:50}
+    .sb-logo{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:900;color:var(--orange);padding:0 1.5rem 1.5rem;border-bottom:1px solid rgba(255,255,255,0.06)}
+    .sb-logo span{color:var(--lime)}
+    .sb-section{padding:1.2rem 1rem 0;font-size:0.68rem;font-weight:700;color:#444;letter-spacing:1.5px;text-transform:uppercase}
+    .sb-nav{list-style:none;padding:0.4rem 0.8rem 0}
+    .sb-nav li a{display:flex;align-items:center;gap:0.7rem;padding:0.65rem 0.8rem;border-radius:10px;text-decoration:none;color:#888;font-size:0.88rem;font-weight:500;transition:all 0.2s}
+    .sb-nav li a:hover{background:rgba(255,255,255,0.05);color:#ddd}
+    .sb-nav li a.active{background:rgba(231,111,81,0.12);color:var(--orange)}
+    .sb-nav li a .ico{font-size:1.1rem;width:22px;text-align:center}
+    .sb-bottom{margin-top:auto;padding:1rem 1.5rem;border-top:1px solid rgba(255,255,255,0.06)}
+    .sb-user{display:flex;align-items:center;gap:0.8rem}
+    .sb-avatar{width:36px;height:36px;background:linear-gradient(135deg,var(--orange),var(--yellow));border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:white}
+    .sb-user-info .name{font-size:0.85rem;font-weight:600}
+    .sb-user-info .role{font-size:0.72rem;color:#666}
+    .main{margin-left:240px;flex:1;padding:2rem 2.5rem;max-width:calc(100vw - 240px)}
+    .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;flex-wrap:wrap;gap:1rem}
+    .topbar h1{font-family:'Playfair Display',serif;font-size:1.7rem;font-weight:900}
+    .topbar p{color:#888;font-size:0.88rem;margin-top:0.2rem}
+    /* BIG STATS */
+    .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+    .stat-card{background:var(--card);border:1px solid rgba(255,255,255,0.07);border-radius:16px;padding:1.4rem 1.5rem;transition:transform 0.2s}
+    .stat-card:hover{transform:translateY(-3px)}
+    .sc-icon{font-size:1.6rem;margin-bottom:0.6rem}
+    .sc-val{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900}
+    .sc-label{font-size:0.78rem;color:#777;margin-top:0.2rem}
+    .sc-change{font-size:0.72rem;margin-top:0.3rem}
+    .up{color:var(--lime)}.down{color:var(--orange)}
+    /* LAYOUT */
+    .grid-two{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin-bottom:1.5rem}
+    .sec-card{background:var(--card);border:1px solid rgba(255,255,255,0.07);border-radius:20px;padding:1.5rem}
+    .sec-card h3{font-size:1rem;font-weight:700;margin-bottom:1.2rem;display:flex;align-items:center;justify-content:space-between}
+    /* TABLE */
+    table{width:100%;border-collapse:collapse;font-size:0.83rem}
+    thead th{color:#666;font-size:0.72rem;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;padding:0.5rem 0.8rem;text-align:left;border-bottom:1px solid rgba(255,255,255,0.07)}
+    tbody tr{transition:background 0.2s}
+    tbody tr:hover{background:rgba(255,255,255,0.03)}
+    tbody td{padding:0.75rem 0.8rem;border-bottom:1px solid rgba(255,255,255,0.05);color:#ccc}
+    .badge{padding:0.2rem 0.6rem;border-radius:50px;font-size:0.68rem;font-weight:600}
+    .badge-available{background:rgba(82,183,136,0.18);color:var(--lime)}
+    .badge-claimed{background:rgba(244,162,97,0.18);color:var(--yellow)}
+    .badge-completed{background:rgba(255,255,255,0.08);color:#888}
+    .badge-urgent{background:rgba(231,111,81,0.18);color:var(--orange)}
+    .badge-active{background:rgba(82,183,136,0.12);color:var(--lime)}
+    .badge-donor{background:rgba(82,183,136,0.15);color:var(--lime)}
+    .badge-ngo{background:rgba(244,162,97,0.15);color:var(--yellow)}
+    /* LIVE CHART */
+    .mini-chart{display:flex;align-items:flex-end;gap:4px;height:80px;margin-top:0.5rem}
+    .bar{flex:1;border-radius:4px 4px 0 0;background:linear-gradient(to top,var(--green),var(--lime));transition:height 1s ease;min-width:12px}
+    .chart-days{display:flex;gap:4px;margin-top:0.3rem}
+    .chart-days span{flex:1;font-size:0.6rem;color:#555;text-align:center}
+    /* ACTIVITY FEED */
+    .activity-item{display:flex;gap:0.8rem;align-items:flex-start;padding:0.7rem 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+    .activity-item:last-child{border-bottom:none}
+    .act-icon{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:0.9rem;flex-shrink:0}
+    .act-green{background:rgba(82,183,136,0.15)}
+    .act-yellow{background:rgba(244,162,97,0.15)}
+    .act-orange{background:rgba(231,111,81,0.15)}
+    .act-text{font-size:0.82rem;color:#ccc;line-height:1.5}
+    .act-time{font-size:0.72rem;color:#555;margin-top:0.15rem}
+    /* ACTION BTNS */
+    .act-btn{background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.1);color:#bbb;padding:0.3rem 0.7rem;border-radius:6px;font-size:0.72rem;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all 0.2s;margin-left:0.3rem}
+    .act-btn:hover{background:rgba(231,111,81,0.15);border-color:rgba(231,111,81,0.3);color:var(--orange)}
+    /* KPI RINGS */
+    .kpi-row{display:flex;gap:1rem;margin-top:0.8rem;flex-wrap:wrap}
+    .kpi-item{flex:1;min-width:100px;text-align:center;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:12px;padding:1rem 0.5rem}
+    .kpi-val{font-family:'Playfair Display',serif;font-size:1.5rem;font-weight:900}
+    .kpi-label{font-size:0.7rem;color:#777;margin-top:0.2rem}
+    /* TOAST */
+    .toast{position:fixed;bottom:2rem;right:2rem;background:var(--green);color:white;padding:0.9rem 1.5rem;border-radius:12px;font-size:0.9rem;font-weight:600;z-index:999;opacity:0;transform:translateY(20px);transition:all 0.3s;pointer-events:none}
+    .toast.show{opacity:1;transform:translateY(0)}
+    @media(max-width:900px){.stats-row{grid-template-columns:1fr 1fr}.grid-two{grid-template-columns:1fr}.sidebar{display:none}.main{margin-left:0;max-width:100vw;padding:1.5rem}}
+  </style>
+</head>
+<body>
+<aside class="sidebar">
+  <div class="sb-logo">Feed<span>Forward</span></div>
+  <div class="sb-section">Admin</div>
+  <ul class="sb-nav">
+    <li><a href="#" class="active"><span class="ico">📊</span> Overview</a></li>
+    <li><a href="#"><span class="ico">🍱</span> All Donations</a></li>
+    <li><a href="#"><span class="ico">👥</span> Users</a></li>
+    <li><a href="#"><span class="ico">🤝</span> NGOs</a></li>
+    <li><a href="#"><span class="ico">📍</span> Live Map</a></li>
+  </ul>
+  <div class="sb-section">System</div>
+  <ul class="sb-nav">
+    <li><a href="#"><span class="ico">🔔</span> Notifications</a></li>
+    <li><a href="#"><span class="ico">⚙️</span> Settings</a></li>
+    <li><a href="login.html"><span class="ico">🚪</span> Logout</a></li>
+  </ul>
+  <div class="sb-bottom">
+    <div class="sb-user">
+      <div class="sb-avatar">A</div>
+      <div class="sb-user-info"><div class="name">Admin</div><div class="role">🛡️ Super Admin</div></div>
+    </div>
+  </div>
+</aside>
+
+<main class="main">
+  <div class="topbar">
+    <div>
+      <h1>Admin Panel 🛡️</h1>
+      <p>Platform overview — real-time stats and user management.</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:0.8rem">
+      <div style="width:8px;height:8px;background:var(--lime);border-radius:50%;animation:pulse 1.5s infinite"></div>
+      <span style="font-size:0.82rem;color:var(--lime)">System Live</span>
+    </div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="sc-icon">🍱</div>
+      <div class="sc-val" style="color:var(--lime)" id="a1">0</div>
+      <div class="sc-label">Total Donations</div>
+      <div class="sc-change up">↑ 24 today</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-icon">🧑‍🤝‍🧑</div>
+      <div class="sc-val" style="color:var(--yellow)" id="a2">0</div>
+      <div class="sc-label">Meals Delivered</div>
+      <div class="sc-change up">↑ 180 this week</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-icon">👥</div>
+      <div class="sc-val" style="color:var(--orange)" id="a3">0</div>
+      <div class="sc-label">Registered Users</div>
+      <div class="sc-change up">↑ 12 new today</div>
+    </div>
+    <div class="stat-card">
+      <div class="sc-icon">♻️</div>
+      <div class="sc-val" style="color:var(--lime)" id="a4">0</div>
+      <div class="sc-label">Kg Waste Reduced</div>
+      <div class="sc-change up">↑ 8% this month</div>
+    </div>
+  </div>
+
+  <div class="grid-two">
+    <!-- Donations Table -->
+    <div class="sec-card">
+      <h3>🍱 Recent Donations <span style="font-size:0.75rem;color:#666;font-weight:500">Live feed</span></h3>
+      <table>
+        <thead><tr><th>Food</th><th>Donor</th><th>Qty</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td>🍛 Biryani</td><td>Rajdhani</td><td>40 p</td><td><span class="badge badge-urgent">Urgent</span></td><td><button class="act-btn">🗑</button></td></tr>
+          <tr><td>🥗 Salad</td><td>Hostel</td><td>15 kg</td><td><span class="badge badge-available">Available</span></td><td><button class="act-btn">🗑</button></td></tr>
+          <tr><td>🍞 Bread</td><td>Baker's Den</td><td>30 u</td><td><span class="badge badge-available">Available</span></td><td><button class="act-btn">🗑</button></td></tr>
+          <tr><td>🍲 Dal Rice</td><td>City Hostel</td><td>25 p</td><td><span class="badge badge-claimed">Claimed</span></td><td><button class="act-btn">🗑</button></td></tr>
+          <tr><td>🍰 Pastries</td><td>Sweet Corner</td><td>50 u</td><td><span class="badge badge-completed">Done</span></td><td><button class="act-btn">🗑</button></td></tr>
+          <tr><td>🥦 Vegetables</td><td>FreshMart</td><td>20 kg</td><td><span class="badge badge-available">Available</span></td><td><button class="act-btn">🗑</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <!-- Activity Feed -->
+    <div class="sec-card">
+      <h3>🔔 Live Activity</h3>
+      <div id="actFeed">
+        <div class="activity-item"><div class="act-icon act-green">🍱</div><div><div class="act-text"><strong>Rajdhani Restaurant</strong> posted Biryani – 40 portions in Koramangala</div><div class="act-time">2 min ago</div></div></div>
+        <div class="activity-item"><div class="act-icon act-yellow">🤝</div><div><div class="act-text"><strong>Akshaya Patra</strong> claimed Dal & Rice from City Hostel</div><div class="act-time">15 min ago</div></div></div>
+        <div class="activity-item"><div class="act-icon act-green">👤</div><div><div class="act-text"><strong>New user</strong> registered as Donor – Baker's Den, Whitefield</div><div class="act-time">28 min ago</div></div></div>
+        <div class="activity-item"><div class="act-icon act-orange">✅</div><div><div class="act-text"><strong>Robin Hood Army</strong> marked collection complete – Pastries, MG Road</div><div class="act-time">1 hr ago</div></div></div>
+        <div class="activity-item"><div class="act-icon act-yellow">⭐</div><div><div class="act-text"><strong>Feeding India</strong> rated FreshMart 5 stars</div><div class="act-time">2 hr ago</div></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid-two">
+    <!-- Weekly Chart -->
+    <div class="sec-card">
+      <h3>📈 Weekly Donations Chart</h3>
+      <div class="mini-chart" id="miniChart">
+        <div class="bar" style="height:0" data-h="55%"></div>
+        <div class="bar" style="height:0" data-h="70%"></div>
+        <div class="bar" style="height:0" data-h="45%"></div>
+        <div class="bar" style="height:0" data-h="90%"></div>
+        <div class="bar" style="height:0" data-h="100%"></div>
+        <div class="bar" style="height:0" data-h="75%"></div>
+        <div class="bar" style="height:0" data-h="60%"></div>
+      </div>
+      <div class="chart-days"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+      <div class="kpi-row">
+        <div class="kpi-item"><div class="kpi-val" style="color:var(--lime)">93%</div><div class="kpi-label">Claim Rate</div></div>
+        <div class="kpi-item"><div class="kpi-val" style="color:var(--yellow)">18 min</div><div class="kpi-label">Avg Claim Time</div></div>
+        <div class="kpi-item"><div class="kpi-val" style="color:var(--orange)">4.7★</div><div class="kpi-label">Avg Rating</div></div>
+      </div>
+    </div>
+    <!-- Users Table -->
+    <div class="sec-card">
+      <h3>👥 Registered Users</h3>
+      <table>
+        <thead><tr><th>Name</th><th>Role</th><th>City</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody>
+          <tr><td>Anjali S.</td><td><span class="badge badge-donor">Donor</span></td><td>Bangalore</td><td><span class="badge badge-active">Active</span></td><td><button class="act-btn" onclick="showToast('User suspended')">🚫</button></td></tr>
+          <tr><td>Akshaya Patra</td><td><span class="badge badge-ngo">NGO</span></td><td>Bangalore</td><td><span class="badge badge-active">Active</span></td><td><button class="act-btn" onclick="showToast('User suspended')">🚫</button></td></tr>
+          <tr><td>Baker's Den</td><td><span class="badge badge-donor">Donor</span></td><td>Bangalore</td><td><span class="badge badge-active">Active</span></td><td><button class="act-btn" onclick="showToast('User suspended')">🚫</button></td></tr>
+          <tr><td>Robin Hood</td><td><span class="badge badge-ngo">NGO</span></td><td>Mumbai</td><td><span class="badge badge-active">Active</span></td><td><button class="act-btn" onclick="showToast('User suspended')">🚫</button></td></tr>
+          <tr><td>FreshMart</td><td><span class="badge badge-donor">Donor</span></td><td>Pune</td><td><span class="badge badge-active">Active</span></td><td><button class="act-btn" onclick="showToast('User suspended')">🚫</button></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<style>
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+</style>
+<script>
+  function animCount(id, val, suffix='') {
+    let n=0; const step=val/60;
+    const iv=setInterval(()=>{n=Math.min(n+step,val);document.getElementById(id).textContent=Math.round(n).toLocaleString()+suffix;if(n>=val)clearInterval(iv);},25);
+  }
+  animCount('a1',1247); animCount('a2',9830); animCount('a3',342); animCount('a4',4190);
+
+  setTimeout(()=>{
+    document.querySelectorAll('.bar').forEach(b=>{b.style.height=b.dataset.h;});
+  },500);
+
+  function showToast(msg) {
+    const t=document.getElementById('toast');
+    t.textContent=msg; t.classList.add('show');
+    setTimeout(()=>t.classList.remove('show'),3000);
+  }
+
+  // Simulated live feed
+  const liveEvents = [
+    {icon:'act-green',e:'🍱',text:'<strong>Sagar Hotel</strong> posted South Indian Thali – 60 portions'},
+    {icon:'act-yellow',e:'🤝',text:'<strong>Feeding India</strong> claimed Bread Loaves from Baker\'s Den'},
+    {icon:'act-green',e:'👤',text:'<strong>New NGO</strong> registered – Smile Foundation, Delhi'},
+  ];
+  let evIdx = 0;
+  setInterval(() => {
+    const ev = liveEvents[evIdx % liveEvents.length]; evIdx++;
+    const feed = document.getElementById('actFeed');
+    const item = document.createElement('div');
+    item.className = 'activity-item';
+    item.style.animation = 'fadeIn 0.5s ease';
+    item.innerHTML = `<div class="act-icon ${ev.icon}">${ev.e}</div><div><div class="act-text">${ev.text}</div><div class="act-time">Just now</div></div>`;
+    feed.insertBefore(item, feed.firstChild);
+    if (feed.children.length > 8) feed.removeChild(feed.lastChild);
+  }, 6000);
+</script>
+</body>
+</html>

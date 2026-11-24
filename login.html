@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login – FeedForward</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{--green:#2d6a4f;--lime:#52b788;--yellow:#f4a261;--orange:#e76f51;--dark:#1a1a2e}
+    body{font-family:'DM Sans',sans-serif;background:var(--dark);color:#f0ede4;min-height:100vh;display:flex;flex-direction:column}
+    body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse at 20% 50%,rgba(82,183,136,0.07) 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,rgba(244,162,97,0.07) 0%,transparent 60%);pointer-events:none}
+    nav{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 5%;border-bottom:1px solid rgba(255,255,255,0.06)}
+    .logo{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:900;color:var(--lime);text-decoration:none}
+    .logo span{color:var(--yellow)}
+    .back-link{color:#888;text-decoration:none;font-size:0.88rem;transition:color 0.3s}
+    .back-link:hover{color:var(--lime)}
+    .page-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:3rem 1.5rem}
+    .card{width:100%;max-width:460px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.09);border-radius:28px;padding:2.8rem 2.5rem;animation:fadeUp 0.6s ease both}
+    @keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+    .card-top{text-align:center;margin-bottom:2rem}
+    .card-top .emoji{font-size:2.8rem;margin-bottom:0.6rem}
+    .card-top h1{font-family:'Playfair Display',serif;font-size:1.9rem;font-weight:900}
+    .card-top p{color:#888;font-size:0.88rem;margin-top:0.4rem}
+    .field{margin-bottom:1rem}
+    .field label{display:block;font-size:0.8rem;font-weight:600;color:#aaa;margin-bottom:0.4rem}
+    .field input{width:100%;background:rgba(255,255,255,0.05);border:1.5px solid rgba(255,255,255,0.1);border-radius:10px;padding:0.75rem 1rem;color:#f0ede4;font-size:0.9rem;font-family:'DM Sans',sans-serif;transition:border-color 0.25s,box-shadow 0.25s;outline:none}
+    .field input:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(82,183,136,0.12)}
+    .field input::placeholder{color:#555}
+    .forgot{text-align:right;margin-top:0.3rem}
+    .forgot a{color:#666;font-size:0.78rem;text-decoration:none}
+    .btn-submit{width:100%;background:linear-gradient(135deg,var(--lime),var(--green));color:white;border:none;border-radius:12px;padding:0.95rem;font-size:1rem;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;margin-top:0.5rem;transition:transform 0.2s,box-shadow 0.3s;position:relative}
+    .btn-submit:hover{transform:translateY(-2px);box-shadow:0 10px 30px rgba(82,183,136,0.35)}
+    .btn-submit:disabled{opacity:0.7;cursor:not-allowed;transform:none}
+    .error-msg{background:rgba(231,111,81,0.12);border:1px solid rgba(231,111,81,0.3);border-radius:10px;padding:0.75rem 1rem;color:var(--orange);font-size:0.85rem;margin-bottom:1rem;display:none}
+    .divider{display:flex;align-items:center;gap:1rem;margin:1.2rem 0}
+    .divider::before,.divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,0.08)}
+    .divider span{color:#555;font-size:0.78rem}
+    .register-link{text-align:center;font-size:0.85rem;color:#888}
+    .register-link a{color:var(--lime);text-decoration:none;font-weight:600}
+    .hint-label{font-size:0.75rem;color:#555;margin-bottom:0.4rem}
+    .role-hint{display:flex;gap:0.5rem;flex-wrap:wrap;margin-bottom:1.2rem}
+    .hint-pill{background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);border-radius:50px;padding:0.3rem 0.8rem;font-size:0.75rem;color:#888;cursor:pointer;transition:all 0.2s;font-family:'DM Sans',sans-serif}
+    .hint-pill:hover{border-color:var(--lime);color:var(--lime)}
+    .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,0.3);border-top-color:white;border-radius:50%;animation:spin 0.6s linear infinite;vertical-align:middle;margin-right:6px;display:none}
+    @keyframes spin{to{transform:rotate(360deg)}}
+  </style>
+</head>
+<body>
+<nav>
+  <a href="index.html" class="logo">Feed<span>Forward</span></a>
+  <a href="index.html" class="back-link">← Back to Home</a>
+</nav>
+<div class="page-wrap">
+  <div class="card">
+    <div class="card-top">
+      <div class="emoji">👋</div>
+      <h1>Welcome Back</h1>
+      <p>Sign in to continue your mission</p>
+    </div>
+
+    <div class="hint-label">Quick fill (demo accounts):</div>
+    <div class="role-hint">
+      <button class="hint-pill" onclick="fillDemo('donor@demo.com','password123')">🍱 Donor Demo</button>
+      <button class="hint-pill" onclick="fillDemo('ngo@demo.com','password123')">🤝 NGO Demo</button>
+      <button class="hint-pill" onclick="fillDemo('admin@demo.com','password123')">🛡️ Admin Demo</button>
+    </div>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <form id="loginForm" onsubmit="handleLogin(event)">
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="emailInput" placeholder="you@example.com" required/>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="pwInput" placeholder="Your password" required/>
+        <div class="forgot"><a href="#">Forgot password?</a></div>
+      </div>
+      <button type="submit" class="btn-submit" id="submitBtn">
+        <span class="spinner" id="spinner"></span>
+        Sign In →
+      </button>
+    </form>
+
+    <div class="divider"><span>new here?</span></div>
+    <div class="register-link"><a href="register.html">Create a free account →</a></div>
+  </div>
+</div>
+
+<script>
+  function fillDemo(email, pw) {
+    document.getElementById('emailInput').value = email;
+    document.getElementById('pwInput').value = pw;
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const email = document.getElementById('emailInput').value.trim();
+    const pw    = document.getElementById('pwInput').value;
+    const err   = document.getElementById('errorMsg');
+    const btn   = document.getElementById('submitBtn');
+    const spin  = document.getElementById('spinner');
+
+    err.style.display = 'none';
+    btn.disabled = true;
+    spin.style.display = 'inline-block';
+
+    try {
+      // ✅ ALWAYS go through backend — this creates the server session
+      const res  = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password: pw }),
+        credentials: 'include'   // ← important: sends/saves session cookie
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        // Save basic info in localStorage for dashboard greeting
+        localStorage.setItem('ff_user', JSON.stringify({
+          name: data.name,
+          role: data.role,
+          user_id: data.user_id
+        }));
+        // Redirect based on role
+        if      (data.role === 'donor') window.location.href = 'donor-dashboard.html';
+        else if (data.role === 'ngo')   window.location.href = 'ngo-dashboard.html';
+        else                            window.location.href = 'admin-dashboard.html';
+      } else {
+        err.textContent = '❌ ' + (data.message || 'Invalid email or password');
+        err.style.display = 'block';
+        btn.disabled = false;
+        spin.style.display = 'none';
+      }
+    } catch (ex) {
+      err.textContent = '❌ Cannot connect to server. Make sure python app.py is running.';
+      err.style.display = 'block';
+      btn.disabled = false;
+      spin.style.display = 'none';
+    }
+  }
+</script>
+</body>
+</html>

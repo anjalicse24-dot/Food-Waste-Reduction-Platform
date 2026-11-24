@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>FeedForward – End Food Waste</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --green:   #2d6a4f;
+      --lime:    #52b788;
+      --yellow:  #f4a261;
+      --orange:  #e76f51;
+      --cream:   #fefae0;
+      --dark:    #1a1a2e;
+      --card-bg: rgba(255,255,255,0.07);
+      --glass:   rgba(255,255,255,0.12);
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--dark);
+      color: #f0ede4;
+      overflow-x: hidden;
+    }
+
+    /* ── NOISE TEXTURE OVERLAY ── */
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none; z-index: 9999; opacity: 0.4;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 1.2rem 5%;
+      background: rgba(26,26,46,0.7);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid rgba(82,183,136,0.15);
+      animation: slideDown 0.7s ease;
+    }
+    @keyframes slideDown { from{transform:translateY(-100%);opacity:0} to{transform:translateY(0);opacity:1} }
+
+    .logo {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.6rem; font-weight: 900;
+      color: var(--lime);
+      letter-spacing: -0.5px;
+    }
+    .logo span { color: var(--yellow); }
+
+    .nav-links { display: flex; gap: 2rem; list-style: none; }
+    .nav-links a {
+      color: #ccc; text-decoration: none;
+      font-size: 0.9rem; font-weight: 500;
+      transition: color 0.3s;
+    }
+    .nav-links a:hover { color: var(--lime); }
+
+    .nav-cta {
+      background: var(--lime); color: var(--dark);
+      border: none; padding: 0.6rem 1.4rem;
+      border-radius: 50px; font-weight: 600; font-size: 0.9rem;
+      cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+      text-decoration: none;
+    }
+    .nav-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(82,183,136,0.4); }
+
+    /* ── HERO ── */
+    .hero {
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      text-align: center;
+      padding: 8rem 5% 4rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* animated gradient orbs */
+    .orb {
+      position: absolute; border-radius: 50%;
+      filter: blur(90px); opacity: 0.18; pointer-events: none;
+    }
+    .orb1 { width: 500px; height: 500px; background: var(--lime);  top: -100px; left: -150px; animation: float 8s ease-in-out infinite; }
+    .orb2 { width: 400px; height: 400px; background: var(--yellow); bottom: -80px; right: -100px; animation: float 10s ease-in-out infinite reverse; }
+    .orb3 { width: 300px; height: 300px; background: var(--orange); top: 40%; left: 60%; animation: float 7s ease-in-out infinite 2s; }
+    @keyframes float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-30px)} }
+
+    .hero-badge {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      background: rgba(82,183,136,0.15);
+      border: 1px solid rgba(82,183,136,0.4);
+      color: var(--lime); padding: 0.4rem 1rem;
+      border-radius: 50px; font-size: 0.82rem; font-weight: 500;
+      margin-bottom: 1.5rem;
+      animation: fadeUp 0.8s ease 0.2s both;
+    }
+    .dot { width: 6px; height: 6px; background: var(--lime); border-radius: 50%; animation: pulse 1.5s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+    .hero h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(3rem, 8vw, 6.5rem);
+      font-weight: 900; line-height: 1.05;
+      letter-spacing: -2px;
+      animation: fadeUp 0.8s ease 0.4s both;
+    }
+    .hero h1 .accent { color: var(--lime); }
+    .hero h1 .accent2 { color: var(--yellow); }
+
+    .hero-sub {
+      max-width: 560px; margin: 1.5rem auto 0;
+      color: #aaa; font-size: 1.1rem; line-height: 1.7;
+      animation: fadeUp 0.8s ease 0.6s both;
+    }
+
+    .hero-btns {
+      display: flex; gap: 1rem; margin-top: 2.5rem; flex-wrap: wrap; justify-content: center;
+      animation: fadeUp 0.8s ease 0.8s both;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--lime), var(--green));
+      color: white; border: none;
+      padding: 0.9rem 2.2rem; border-radius: 50px;
+      font-size: 1rem; font-weight: 600; cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.3s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 36px rgba(82,183,136,0.45); }
+
+    .btn-outline {
+      background: transparent;
+      border: 1.5px solid rgba(255,255,255,0.25);
+      color: #ddd; padding: 0.9rem 2.2rem;
+      border-radius: 50px; font-size: 1rem; font-weight: 500;
+      cursor: pointer; transition: border-color 0.3s, color 0.3s;
+      text-decoration: none; display: inline-block;
+    }
+    .btn-outline:hover { border-color: var(--lime); color: var(--lime); }
+
+    @keyframes fadeUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+
+    /* ── STATS STRIP ── */
+    .stats {
+      display: flex; justify-content: center; flex-wrap: wrap; gap: 0;
+      background: rgba(82,183,136,0.08);
+      border-top: 1px solid rgba(82,183,136,0.15);
+      border-bottom: 1px solid rgba(82,183,136,0.15);
+      padding: 2rem 5%;
+      animation: fadeUp 0.8s ease 1s both;
+    }
+    .stat-item {
+      flex: 1; min-width: 180px; text-align: center;
+      padding: 1.2rem 2rem;
+      border-right: 1px solid rgba(255,255,255,0.06);
+    }
+    .stat-item:last-child { border-right: none; }
+    .stat-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.6rem; font-weight: 900;
+      color: var(--lime);
+    }
+    .stat-label { color: #888; font-size: 0.85rem; margin-top: 0.2rem; }
+
+    /* ── HOW IT WORKS ── */
+    section { padding: 6rem 5%; }
+
+    .section-tag {
+      display: inline-block;
+      background: rgba(244,162,97,0.12);
+      border: 1px solid rgba(244,162,97,0.3);
+      color: var(--yellow); padding: 0.3rem 0.9rem;
+      border-radius: 50px; font-size: 0.78rem; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      font-weight: 900; letter-spacing: -1px;
+      line-height: 1.15;
+    }
+
+    .steps-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 1.5rem; margin-top: 3rem;
+    }
+    .step-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px; padding: 2rem 1.8rem;
+      position: relative; overflow: hidden;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .step-card::before {
+      content: ''; position: absolute;
+      inset: 0; border-radius: 20px;
+      background: linear-gradient(135deg, rgba(82,183,136,0.06), transparent);
+      opacity: 0; transition: opacity 0.3s;
+    }
+    .step-card:hover { transform: translateY(-6px); border-color: rgba(82,183,136,0.3); }
+    .step-card:hover::before { opacity: 1; }
+
+    .step-num {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem; font-weight: 900;
+      color: rgba(82,183,136,0.15); line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+    .step-icon { font-size: 2rem; margin-bottom: 1rem; }
+    .step-card h3 { font-size: 1.1rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .step-card p  { color: #888; font-size: 0.88rem; line-height: 1.6; }
+
+    /* ── FEATURES ── */
+    .features-section { background: rgba(255,255,255,0.02); }
+
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.2rem; margin-top: 3rem;
+    }
+    .feat-card {
+      background: var(--card-bg);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 16px; padding: 1.8rem;
+      display: flex; gap: 1rem; align-items: flex-start;
+      transition: transform 0.3s, border-color 0.3s;
+    }
+    .feat-card:hover { transform: translateY(-4px); border-color: rgba(244,162,97,0.35); }
+    .feat-icon {
+      width: 48px; height: 48px; border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.4rem; flex-shrink: 0;
+    }
+    .feat-icon.green  { background: rgba(82,183,136,0.15); }
+    .feat-icon.yellow { background: rgba(244,162,97,0.15); }
+    .feat-icon.orange { background: rgba(231,111,81,0.15); }
+    .feat-card h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.3rem; }
+    .feat-card p  { color: #888; font-size: 0.85rem; line-height: 1.55; }
+
+    /* ── ROLES ── */
+    .roles-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 3rem;
+    }
+    @media(max-width:640px){ .roles-grid{grid-template-columns:1fr;} }
+
+    .role-card {
+      border-radius: 24px; padding: 2.5rem;
+      position: relative; overflow: hidden;
+    }
+    .role-card.donor {
+      background: linear-gradient(135deg, rgba(82,183,136,0.18) 0%, rgba(45,106,79,0.08) 100%);
+      border: 1.5px solid rgba(82,183,136,0.25);
+    }
+    .role-card.ngo {
+      background: linear-gradient(135deg, rgba(244,162,97,0.18) 0%, rgba(231,111,81,0.08) 100%);
+      border: 1.5px solid rgba(244,162,97,0.25);
+    }
+    .role-emoji { font-size: 3rem; margin-bottom: 1rem; }
+    .role-card h3 { font-family:'Playfair Display',serif; font-size:1.6rem; font-weight:700; margin-bottom:0.8rem; }
+    .role-card p  { color:#aaa; line-height:1.65; margin-bottom:1.5rem; font-size:0.92rem; }
+    .role-list { list-style:none; display:flex; flex-direction:column; gap:0.5rem; margin-bottom:1.8rem; }
+    .role-list li { display:flex; align-items:center; gap:0.6rem; font-size:0.88rem; color:#ccc; }
+    .check { color:var(--lime); font-weight:700; }
+    .check-y { color:var(--yellow); font-weight:700; }
+
+    /* ── LIVE DEMO DASHBOARD ── */
+    .demo-section { background: rgba(82,183,136,0.04); }
+
+    .dashboard-mock {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 24px; padding: 2rem;
+      margin-top: 3rem; max-width: 900px; margin-inline: auto;
+    }
+    .dash-header {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;
+    }
+    .dash-title { font-family:'Playfair Display',serif; font-size:1.3rem; font-weight:700; }
+    .dash-stats { display:flex; gap:1rem; flex-wrap:wrap; }
+    .dash-stat {
+      background:rgba(82,183,136,0.1);
+      border:1px solid rgba(82,183,136,0.2);
+      border-radius:12px; padding:0.8rem 1.2rem; text-align:center;
+    }
+    .dash-stat-val { font-size:1.6rem; font-weight:700; color:var(--lime); }
+    .dash-stat-label { font-size:0.72rem; color:#888; }
+
+    .food-cards { display:flex; flex-direction:column; gap:0.8rem; }
+    .food-item {
+      display:flex; align-items:center; gap:1rem;
+      background:rgba(255,255,255,0.04);
+      border:1px solid rgba(255,255,255,0.07);
+      border-radius:14px; padding:1rem 1.2rem;
+      transition:border-color 0.3s;
+    }
+    .food-item:hover { border-color:rgba(82,183,136,0.3); }
+    .food-emoji { font-size:1.8rem; }
+    .food-info { flex:1; }
+    .food-name { font-weight:600; font-size:0.95rem; }
+    .food-meta { color:#888; font-size:0.78rem; margin-top:0.2rem; }
+    .food-badge {
+      padding:0.3rem 0.8rem; border-radius:50px;
+      font-size:0.72rem; font-weight:600;
+    }
+    .badge-available { background:rgba(82,183,136,0.2); color:var(--lime); }
+    .badge-urgent    { background:rgba(231,111,81,0.2);  color:var(--orange); }
+    .badge-claimed   { background:rgba(244,162,97,0.2);  color:var(--yellow); }
+
+    .timer {
+      font-size:0.75rem; color:var(--orange);
+      font-weight:600; margin-left:auto; margin-right:0.5rem;
+      display:flex; align-items:center; gap:0.3rem;
+    }
+
+    /* ── CTA SECTION ── */
+    .cta-section {
+      text-align:center; padding:6rem 5%;
+      background: linear-gradient(135deg, rgba(82,183,136,0.08) 0%, rgba(244,162,97,0.05) 100%);
+      border-top:1px solid rgba(255,255,255,0.06);
+    }
+    .cta-section h2 {
+      font-family:'Playfair Display',serif;
+      font-size:clamp(2rem,5vw,3.5rem); font-weight:900; letter-spacing:-1px;
+      margin-bottom:1rem;
+    }
+    .cta-section p { color:#888; font-size:1rem; margin-bottom:2.5rem; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top:1px solid rgba(255,255,255,0.06);
+      padding:2rem 5%; text-align:center;
+      color:#555; font-size:0.82rem;
+    }
+    footer span { color:var(--lime); }
+
+    /* ── SCROLL REVEAL ── */
+    .reveal { opacity:0; transform:translateY(32px); transition:opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+
+    /* Mobile nav */
+    @media(max-width:768px){
+      .nav-links { display:none; }
+      .hero h1 { letter-spacing:-1px; }
+      .stats { flex-direction:column; }
+      .stat-item { border-right:none; border-bottom:1px solid rgba(255,255,255,0.05); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">Feed<span>Forward</span></div>
+  <ul class="nav-links">
+    <li><a href="#how">How it Works</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#roles">Join As</a></li>
+    <li><a href="#demo">Dashboard</a></li>
+  </ul>
+  <a href="register.html" class="nav-cta">Get Started →</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="orb orb1"></div>
+  <div class="orb orb2"></div>
+  <div class="orb orb3"></div>
+
+  <div class="hero-badge"><span class="dot"></span> Live in your city — join now</div>
+
+  <h1>
+    Stop the <span class="accent">Waste.</span><br/>
+    Feed the <span class="accent2">Need.</span>
+  </h1>
+
+  <p class="hero-sub">
+    FeedForward connects food donors — restaurants, hostels, homes — with NGOs and volunteers who can deliver meals to those who need it most.
+  </p>
+
+  <div class="hero-btns">
+    <a href="register.html" class="btn-primary">🍱 Donate Food Now</a>
+    <a href="register.html" class="btn-outline">🤝 Claim as NGO</a>
+  </div>
+</section>
+
+<!-- STATS -->
+<div class="stats">
+  <div class="stat-item reveal">
+    <div class="stat-num" id="stat1">0</div>
+    <div class="stat-label">Meals Saved This Week</div>
+  </div>
+  <div class="stat-item reveal">
+    <div class="stat-num" id="stat2">0</div>
+    <div class="stat-label">Active Donors</div>
+  </div>
+  <div class="stat-item reveal">
+    <div class="stat-num" id="stat3">0</div>
+    <div class="stat-label">NGO Partners</div>
+  </div>
+  <div class="stat-item reveal">
+    <div class="stat-num" id="stat4">0</div>
+    <div class="stat-label">Kg Waste Reduced</div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="reveal"><span class="section-tag">✦ Process</span></div>
+  <div class="reveal"><h2 class="section-title">How FeedForward Works</h2></div>
+
+  <div class="steps-grid">
+    <div class="step-card reveal">
+      <div class="step-num">01</div>
+      <div class="step-icon">👤</div>
+      <h3>Register & Choose Role</h3>
+      <p>Sign up as a Donor (restaurant, hostel, home) or Receiver (NGO, volunteer) in under 2 minutes.</p>
+    </div>
+    <div class="step-card reveal">
+      <div class="step-num">02</div>
+      <div class="step-icon">🍱</div>
+      <h3>Upload Food Details</h3>
+      <p>Donors post food type, quantity, location, expiry time & optional photo. Takes just 30 seconds.</p>
+    </div>
+    <div class="step-card reveal">
+      <div class="step-num">03</div>
+      <div class="step-icon">📍</div>
+      <h3>NGOs See Nearby Food</h3>
+      <p>Receivers browse available donations sorted by urgency and distance on an interactive map.</p>
+    </div>
+    <div class="step-card reveal">
+      <div class="step-num">04</div>
+      <div class="step-icon">✅</div>
+      <h3>Claim & Collect</h3>
+      <p>NGO claims the food — status updates from Available → Claimed → Completed automatically.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FEATURES -->
+<section id="features" class="features-section">
+  <div class="reveal"><span class="section-tag">✦ Features</span></div>
+  <div class="reveal"><h2 class="section-title">Everything You Need<br/>to Fight Food Waste</h2></div>
+
+  <div class="features-grid">
+    <div class="feat-card reveal">
+      <div class="feat-icon green">⏳</div>
+      <div>
+        <h4>Expiry Countdown Timer</h4>
+        <p>Live countdown shows urgency — donors know when food must be collected, reducing last-minute waste.</p>
+      </div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon yellow">🔥</div>
+      <div>
+        <h4>Priority System</h4>
+        <p>Food expiring soon is automatically boosted to the top, ensuring the most urgent donations are claimed first.</p>
+      </div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon orange">📩</div>
+      <div>
+        <h4>Smart Notifications</h4>
+        <p>Instant alerts when food is available nearby, when a claim is made, or when pickup is confirmed.</p>
+      </div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon green">📸</div>
+      <div>
+        <h4>Photo Upload</h4>
+        <p>Donors can upload images of food so NGOs can verify quality before claiming. Builds trust.</p>
+      </div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon yellow">⭐</div>
+      <div>
+        <h4>Donor Reliability Rating</h4>
+        <p>NGOs rate each donation, building a trust score for donors. Encourages consistency and quality.</p>
+      </div>
+    </div>
+    <div class="feat-card reveal">
+      <div class="feat-icon orange">📊</div>
+      <div>
+        <h4>Admin Dashboard</h4>
+        <p>Admins monitor total donations, meals saved, active users and waste metrics in real time.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ROLES -->
+<section id="roles">
+  <div class="reveal"><span class="section-tag">✦ Join As</span></div>
+  <div class="reveal"><h2 class="section-title">Pick Your Role,<br/>Make Your Impact</h2></div>
+
+  <div class="roles-grid">
+    <div class="role-card donor reveal">
+      <div class="role-emoji">🏪</div>
+      <h3>I'm a Donor</h3>
+      <p>Restaurants, hostels, caterers, or home cooks — if you have excess food, we find it a home instead of a bin.</p>
+      <ul class="role-list">
+        <li><span class="check">✓</span> Post food in under 1 minute</li>
+        <li><span class="check">✓</span> Set pickup window & location</li>
+        <li><span class="check">✓</span> Get notified when food is claimed</li>
+        <li><span class="check">✓</span> Build your donor rating over time</li>
+        <li><span class="check">✓</span> See your total impact stats</li>
+      </ul>
+      <a href="register.html" class="btn-primary">Donate Food →</a>
+    </div>
+
+    <div class="role-card ngo reveal">
+      <div class="role-emoji">🤝</div>
+      <h3>I'm an NGO / Volunteer</h3>
+      <p>Claim available food near you and redirect it to people who need it. Be the bridge between waste and hunger.</p>
+      <ul class="role-list">
+        <li><span class="check-y">✓</span> Browse food available nearby</li>
+        <li><span class="check-y">✓</span> Filter by urgency & food type</li>
+        <li><span class="check-y">✓</span> One-tap claim & confirm pickup</li>
+        <li><span class="check-y">✓</span> Track collection history</li>
+        <li><span class="check-y">✓</span> Rate donor reliability</li>
+      </ul>
+      <a href="register.html" class="btn-outline">Join as NGO →</a>
+    </div>
+  </div>
+</section>
+
+<!-- LIVE DEMO DASHBOARD PREVIEW -->
+<section id="demo" class="demo-section">
+  <div class="reveal"><span class="section-tag">✦ Dashboard Preview</span></div>
+  <div class="reveal"><h2 class="section-title">See It in Action</h2></div>
+
+  <div class="dashboard-mock reveal">
+    <div class="dash-header">
+      <div class="dash-title">🌿 Live Food Board</div>
+      <div class="dash-stats">
+        <div class="dash-stat"><div class="dash-stat-val">5</div><div class="dash-stat-label">Available Now</div></div>
+        <div class="dash-stat"><div class="dash-stat-val">3</div><div class="dash-stat-label">Claimed</div></div>
+        <div class="dash-stat"><div class="dash-stat-val">120</div><div class="dash-stat-label">Saved This Week</div></div>
+      </div>
+    </div>
+
+    <div class="food-cards">
+      <div class="food-item">
+        <div class="food-emoji">🍛</div>
+        <div class="food-info">
+          <div class="food-name">Biryani – 40 Portions</div>
+          <div class="food-meta">📍 Koramangala, Bangalore · Posted 20 min ago · Rajdhani Restaurant</div>
+        </div>
+        <div class="timer" id="timer1">⏳ 2:45:00</div>
+        <span class="food-badge badge-urgent">Urgent</span>
+      </div>
+
+      <div class="food-item">
+        <div class="food-emoji">🥗</div>
+        <div class="food-info">
+          <div class="food-name">Mixed Salad – 15 Kg</div>
+          <div class="food-meta">📍 Indiranagar, Bangalore · Posted 1 hr ago · Hostel Canteen</div>
+        </div>
+        <div class="timer">⏳ 5:30:00</div>
+        <span class="food-badge badge-available">Available</span>
+      </div>
+
+      <div class="food-item">
+        <div class="food-emoji">🍞</div>
+        <div class="food-info">
+          <div class="food-name">Bread Loaves – 30 Units</div>
+          <div class="food-meta">📍 Whitefield, Bangalore · Posted 2 hr ago · Baker's Den</div>
+        </div>
+        <div class="timer">⏳ 8:00:00</div>
+        <span class="food-badge badge-available">Available</span>
+      </div>
+
+      <div class="food-item">
+        <div class="food-emoji">🍲</div>
+        <div class="food-info">
+          <div class="food-name">Dal & Rice – 25 Portions</div>
+          <div class="food-meta">📍 HSR Layout, Bangalore · Claimed by Akshaya Patra NGO</div>
+        </div>
+        <div class="timer" style="color:var(--yellow)">✅ Collected</div>
+        <span class="food-badge badge-claimed">Claimed</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta-section">
+  <h2 class="reveal">Ready to Make<br/>a <span style="color:var(--lime)">Difference?</span></h2>
+  <p class="reveal">Join thousands of donors and NGOs already fighting food waste — one meal at a time.</p>
+  <div class="reveal" style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+    <a href="register.html" class="btn-primary">🍱 Start Donating</a>
+    <a href="register.html" class="btn-outline">📩 Register as NGO</a>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <p>© 2025 <span>FeedForward</span> · Built for a Hunger-Free Future 🌱</p>
+  <p style="margin-top:0.4rem;">Food Waste Reduction Platform · Mini Project · CSE Dept</p>
+</footer>
+
+<script>
+  // ── Scroll Reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 80);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(r => observer.observe(r));
+
+  // ── Animated Counters
+  function animateCount(el, target, suffix='') {
+    let start = 0;
+    const step = target / 60;
+    const tick = () => {
+      start = Math.min(start + step, target);
+      el.textContent = Math.round(start).toLocaleString() + suffix;
+      if (start < target) requestAnimationFrame(tick);
+    };
+    tick();
+  }
+  const statsObs = new IntersectionObserver(entries => {
+    if (entries[0].isIntersecting) {
+      animateCount(document.getElementById('stat1'), 1240, '+');
+      animateCount(document.getElementById('stat2'), 87);
+      animateCount(document.getElementById('stat3'), 32);
+      animateCount(document.getElementById('stat4'), 560, ' kg');
+      statsObs.disconnect();
+    }
+  }, { threshold: 0.3 });
+  statsObs.observe(document.querySelector('.stats'));
+
+  // ── Live Countdown Timer (for urgent item)
+  function updateTimer() {
+    const el = document.getElementById('timer1');
+    const [h,m,s] = el.textContent.replace('⏳ ','').split(':').map(Number);
+    let total = h*3600 + m*60 + s - 1;
+    if (total < 0) total = 0;
+    const hh = String(Math.floor(total/3600)).padStart(2,'0');
+    const mm = String(Math.floor((total%3600)/60)).padStart(2,'0');
+    const ss = String(total%60).padStart(2,'0');
+    el.textContent = `⏳ ${hh}:${mm}:${ss}`;
+  }
+  setInterval(updateTimer, 1000);
+</script>
+</body>
+</html>
